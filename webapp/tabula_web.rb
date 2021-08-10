@@ -331,7 +331,12 @@ Cuba.define do
     on "pdf/:file_id/data" do |file_id|
       pdf_path = Tabula::Workspace.instance.get_document_path(file_id)
 
+      // JSON.load:接受字符串或IO(文件等)并将其转换为 Ruby 哈希/数组， coords结构为：array of hashes
       coords = JSON.load(req.params['coords'])
+
+
+      // !表示修改数组自身，根据page、x、y排序，结果如下：
+      // [{"page"=>1, "extraction_method"=>"spreadsheet", "selection_id"=>"L1628578798607", "x1"=>61.00024999999998, "x2"=>532.7502499999999, "y1"=>147.99987499999997, "y2"=>792.937375, "width"=>471.75, "height"=>644.9375},
       coords.sort_by! do |coord_set|
         [
          coord_set['page'],
@@ -340,6 +345,7 @@ Cuba.define do
         ]
       end
 
+      // 解析数据
       tables = Tabula.extract_tables(pdf_path, coords)
 
       filename =  if req.params['new_filename'] && req.params['new_filename'].strip.size
@@ -426,6 +432,8 @@ Cuba.define do
 
         # end JSON array
         res.write "]"
+
+
      else
         res['Content-Type'] = 'application/json'
 
@@ -439,6 +447,10 @@ Cuba.define do
         # end JSON array
         res.write "]"
       end
+
+      
     end
+
+
   end
 end
